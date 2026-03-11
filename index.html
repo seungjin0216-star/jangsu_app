@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>장수한우 Dashboard v17.1</title>
+  <title>장수한우 Dashboard v17.2</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -237,6 +237,8 @@
         if (data.success) {
           cachedData = data;
           renderPnL(data);
+          // 데이터 로드 시 목표 UI도 같이 갱신 (지점별 로딩 위함)
+          updateGoalUI();
         } else { alert("데이터 오류: " + data.message); }
       } catch (e) { alert("서버 연결 실패!"); }
       finally { loader.classList.add('hidden'); }
@@ -251,7 +253,6 @@
       const container = document.getElementById('pnlAccordionContainer');
       container.innerHTML = "";
       
-      // 아코디언 그룹 정의
       const groups = [
         { title: "1. 매출액 (+)", color: "var(--blue)", keywords: ["현금매출", "카드매출"], val: getV("매출액") },
         { title: "2. 매출원가 (-)", color: "var(--red)", val: getV("매출원가"), subGroups: [
@@ -272,7 +273,6 @@
       groups.forEach(group => {
         const itemEl = document.createElement('div');
         itemEl.className = 'accordion-item';
-        
         let detailsHtml = "";
         if (group.subGroups) {
           group.subGroups.forEach(sg => {
@@ -295,40 +295,45 @@
             });
           } );
         }
-
-        itemEl.innerHTML = `
-          <div class="accordion-header" onclick="this.nextElementSibling.classList.toggle('active')">
-            <span class="acc-label">${group.title}</span>
-            <span class="acc-value" style="color:${group.color}">${group.val.toLocaleString()}원</span>
-          </div>
-          <div class="accordion-content">${detailsHtml || '<p style="font-size:11px; color:#555;">세부 내역 없음</p>'}</div>
-        `;
+        itemEl.innerHTML = `<div class="accordion-header" onclick="this.nextElementSibling.classList.toggle('active')"><span class="acc-label">${group.title}</span><span class="acc-value" style="color:${group.color}">${group.val.toLocaleString()}원</span></div><div class="accordion-content">${detailsHtml || '<p style="font-size:11px; color:#555;">세부 내역 없음</p>'}</div>`;
         container.appendChild(itemEl);
       });
     }
 
+    /**
+     * 📊 비율 분석: 사장님 요청 6대 항목 픽스
+     */
     function renderRatioAnalysis() {
       if(!cachedData) return;
-      const getV = (k) => cachedData.pnlData.find(i => i.label.includes(k))?.value || 0;
-      const rev = getV("매출액") || 1;
-      const margin = ((getV("순이익") / rev) * 100).toFixed(1);
+      const data = cachedData.pnlData;
+      const getSumByKeywords = (kws) => data.filter(i => kws.some(kw => i.label.includes(kw))).reduce((a, b) => a + b.value, 0);
+      const getVal = (k) => data.find(i => i.label.replace(/\s/g,"").includes(k.replace(/\s/g,"")))?.value || 0;
+      
+      const rev = getVal("매출액") || 1;
+      const margin = ((getVal("순이익") / rev) * 100).toFixed(1);
+
+      // 사장님 요청 항목 픽스
+      const fixedItems = [
+        { l: "육류원가", v: getSumByKeywords(["고기값", "특양"]), c: "#ef4444" },
+        { l: "식자재&공산품원가", v: getSumByKeywords(["미락", "콩나물", "마트"]), c: "#f97316" },
+        { l: "주류원가", v: getVal("주류원가"), c: "#fbbf24" },
+        { l: "인건비", v: getVal("인건비"), c: "#10b981" },
+        { l: "임대료", v: getVal("임대료"), c: "#3b82f6" },
+        { l: "네이버광고비용", v: getSumByKeywords(["광고"]), c: "#8b5cf6" }
+      ];
 
       document.getElementById('ratioContent').innerHTML = `
         <div class="ratio-title"><span>📊 매출 대비 지출 비중</span><span style="color:var(--yellow)">순이익률 ${margin}%</span></div>
-        ${[
-          {l:"매출원가 (COGS)", v:getV("매출원가"), c:"#ef4444"},
-          {l:"인건비", v:getV("인건비"), c:"#f97316"},
-          {l:"임대료/관리비", v:getV("임대료")+getV("매장관리비"), c:"#3b82f6"},
-          {l:"기타 고정/변동비", v:getV("고정비")+getV("변동비"), c:"#8b5cf6"}
-        ].map(item => {
+        ${fixedItems.map(item => {
           const pct = ((item.v / rev) * 100).toFixed(1);
           return `<div class="ratio-row"><div class="ratio-info"><span>${item.l}</span><span>${pct}%</span></div>
                   <div class="ratio-bar-bg"><div class="ratio-bar-fill" style="width:${pct}%; background:${item.c}"></div></div></div>`;
         }).join('')}
       `;
 
-      const fixedTotal = getV("인건비") + getV("임대료") + getV("고정비");
-      const varRatio = (getV("매출원가") + getV("변동비")) / rev;
+      // BEP (간이 계산)
+      const fixedTotal = getVal("인건비") + getVal("임대료") + getVal("고정비");
+      const varRatio = (getVal("매출원가") + getVal("변동비")) / rev;
       const bep = Math.round(fixedTotal / (1 - varRatio));
       document.getElementById('bepAnalysis').innerHTML = `
         <div class="ratio-info"><span style="color:var(--text-dim)">🛡️ 예상 손익분기점(BEP) 매출액</span></div>
@@ -341,57 +346,50 @@
       const ctx = document.getElementById('trendChart').getContext('2d');
       if(trendChartObj) trendChartObj.destroy();
       const year = document.getElementById('trendYearSel').value;
-      
       try {
         const res = await fetch(`${CONFIG.url}?token=${CONFIG.token}&branch=${CONFIG.branch}&action=getTrendData&year=${year}`);
         const result = await res.json();
         if(result.success) {
-          const labels = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
           const data = new Array(12).fill(0);
-          result.trend.forEach(t => {
-            const mIdx = parseInt(t.month.replace("월","")) - 1;
-            data[mIdx] = t.revenue;
-          });
-
+          result.trend.forEach(t => { data[parseInt(t.month.replace("월","")) - 1] = t.revenue; });
           trendChartObj = new Chart(ctx, {
             type: 'line',
-            data: {
-              labels: labels,
-              datasets: [{ label: '매출액', data: data, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 }]
-            },
-            options: {
-              responsive: true, maintainAspectRatio: false,
-              plugins: { legend: { display: false } },
-              scales: {
-                y: { grid: { color: '#222' }, ticks: { color: '#666', font: { size: 10 }, callback: v => v/10000 + '만' } },
-                x: { grid: { display: false }, ticks: { color: '#888' } }
-              }
-            }
+            data: { labels: ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"], datasets: [{ label: '매출액', data: data, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#222' }, ticks: { color: '#666', font: { size: 10 }, callback: v => v/10000 + '만' } }, x: { grid: { display: false }, ticks: { color: '#888' } } } }
           });
         }
       } catch(e) { console.log("Trend load error"); }
     }
 
+    /**
+     * 🎯 지점별 개별 목표 저장
+     */
     function saveGoals() {
       const b = document.getElementById('goalBillions').value;
       const m = document.getElementById('goalMillions').value;
       const total = (parseInt(b) * 100000000) + (parseInt(m) * 10000);
-      localStorage.setItem('jangsu_goal_val', total);
-      localStorage.setItem('jangsu_goal_bill', b);
-      localStorage.setItem('jangsu_goal_mill', m);
-      alert("목표가 저장되었습니다!");
+      
+      // 지점 이름을 키값에 포함시켜 개별 저장
+      localStorage.setItem(`jangsu_goal_val_${CONFIG.branch}`, total);
+      localStorage.setItem(`jangsu_goal_bill_${CONFIG.branch}`, b);
+      localStorage.setItem(`jangsu_goal_mill_${CONFIG.branch}`, m);
+      
+      alert(`${CONFIG.branch} 목표가 저장되었습니다!`);
       updateGoalUI();
     }
 
+    /**
+     * 🎯 지점별 개별 목표 UI 갱신
+     */
     function updateGoalUI() {
-      const gVal = parseInt(localStorage.getItem('jangsu_goal_val') || 0);
-      document.getElementById('goalBillions').value = localStorage.getItem('jangsu_goal_bill') || 0;
-      document.getElementById('goalMillions').value = localStorage.getItem('jangsu_goal_mill') || 0;
+      const gVal = parseInt(localStorage.getItem(`jangsu_goal_val_${CONFIG.branch}`) || 0);
+      document.getElementById('goalBillions').value = localStorage.getItem(`jangsu_goal_bill_${CONFIG.branch}`) || 0;
+      document.getElementById('goalMillions').value = localStorage.getItem(`jangsu_goal_mill_${CONFIG.branch}`) || 0;
 
       if(!cachedData) return;
       const currRev = cachedData.pnlData.find(i => i.label.includes("매출액"))?.value || 0;
       document.getElementById('currRev').innerText = currRev.toLocaleString() + "원";
-      const pct = gVal > 0 ? Math.min(100, (currRev / gVal) * 100).toFixed(1) : 0;
+      const pct = gVal > 0 ? Math.min(150, (currRev / gVal) * 100).toFixed(1) : 0;
       document.getElementById('revPct').innerText = pct + "%";
     }
 
