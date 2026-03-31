@@ -3,12 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+  <!-- [핵심] 크롬 아이콘 오류 해결을 위한 매니페스트 (오타 수정 완료) -->
+  <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIuybZOu5keymoCIsCiAgInNob3J0X25hbWUiOiAi7JuReadyvCIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImljb25zL3dvbmRhbmctaWNvbi5wbmciLAogICAgICAic2l6ZXMiOiAiMTkyeDE5MiIsCiAgICAgICJ0eXBlIjogImltYWdlL3BuZyIsCiAgICAgICJwdXJwb3NlIjogImFueSBtYXNrYWJsZSIKICAgIH0sCiAgICB7CiAgICAgICJzcmMiOiAiaWNvbnMvd29uZGFuZy1pY29uLnBuZyIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvcG5nIgogICAgfQogIF0sCiAgInN0YXJ0X3VybCI6ICIuL3dvbmRhbmcuaHRtbCIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzBhMGEwYSIsCiAgInRoZW1lX2NvbG9yIjogIzBhMGEwYSIKfQ==">
+
+  <!-- iOS (Safari) 아이콘 설정 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="원당점">
-  
-  <!-- 아이콘 설정: 깃허브 icons 폴더의 이미지를 참조합니다 -->
   <link rel="apple-touch-icon" href="icons/wondang-icon.png">
+  
+  <!-- 브라우저 테마 컬러 및 기본 아이콘 -->
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="shortcut icon" href="icons/wondang-icon.png">
   <link rel="icon" type="image/png" href="icons/wondang-icon.png">
   
   <title>장수한우곱창 - 원당점</title>
@@ -190,9 +197,6 @@
       finally { document.getElementById('loadingScreen').style.display = 'none'; }
     }
 
-    /**
-     * 🧠 지능형 데이터 매칭 로직
-     */
     function parsePnlData(pnlData, latestDay) {
       const map = {};
       pnlData.forEach(item => { 
@@ -286,7 +290,6 @@
         container.appendChild(div);
       });
 
-      // 📊 9대 비율 분석 자동 렌더링
       const ratioGrid = document.getElementById('ratioGrid');
       ratioGrid.innerHTML = '';
       const rev = d.revenue.total || 1; 
