@@ -233,12 +233,12 @@
     .date-select:focus { outline: none; border-color: #d4af6a; }
     
     /* 메인 카드 */
-    .main-card { margin: 20px; padding: 0; position: relative; }
+    .main-card { margin: 16px 20px; padding: 0; position: relative; }
     
     .main-card-inner {
-      padding: 28px 24px;
+      padding: 20px 18px;
       background: linear-gradient(135deg, #8b3a3a 0%, #6d2e2e 100%);
-      border-radius: 24px;
+      border-radius: 20px;
       border: 3px solid #c9a055;
       position: relative;
       overflow: hidden;
@@ -248,37 +248,37 @@
     .main-card-inner::after {
       content: '💵';
       position: absolute;
-      top: 20px;
-      right: 20px;
-      font-size: 80px;
+      top: 16px;
+      right: 16px;
+      font-size: 60px;
       opacity: 0.15;
       transform: rotate(15deg);
     }
     
-    .card-label { font-size: 14px; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 500; position: relative; z-index: 1; }
-    .card-value { font-size: 36px; font-weight: 700; color: #ffffff; margin-bottom: 8px; letter-spacing: -0.5px; position: relative; z-index: 1; }
+    .card-label { font-size: 13px; color: rgba(255, 255, 255, 0.9); margin-bottom: 6px; font-weight: 500; position: relative; z-index: 1; }
+    .card-value { font-size: 30px; font-weight: 700; color: #ffffff; margin-bottom: 6px; letter-spacing: -0.5px; position: relative; z-index: 1; }
     .card-change { font-size: 13px; color: rgba(255, 255, 255, 0.9); font-weight: 600; position: relative; z-index: 1; }
     .card-change .green { color: #6dd47e; }
     .card-change .red { color: #ff6b6b; }
     
     /* 손익계산서 타이틀 */
-    .section-header { padding: 16px 20px 0 20px; }
-    .section-title { font-size: 16px; font-weight: 700; color: #ffffff; margin-bottom: 12px; }
-    .section-divider { height: 2px; background: linear-gradient(to right, #e85d4f 50%, #3a3f47 50%); margin-bottom: 20px; }
+    .section-header { padding: 12px 20px 0 20px; }
+    .section-title { font-size: 15px; font-weight: 700; color: #ffffff; margin-bottom: 10px; }
+    .section-divider { height: 2px; background: linear-gradient(to right, #e85d4f 50%, #3a3f47 50%); margin-bottom: 16px; }
     
     /* 차트 영역 */
     .charts-container {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      padding: 0 20px 20px 20px;
+      gap: 12px;
+      padding: 0 20px 16px 20px;
     }
     
     /* 파이 차트 */
     .pie-chart-wrapper {
       position: relative;
-      width: 160px;
-      height: 160px;
+      width: 140px;
+      height: 140px;
       margin: 0 auto;
       filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
     }
@@ -291,8 +291,8 @@
       text-align: center;
     }
     
-    .pie-center-label { font-size: 11px; color: #8b8b8b; margin-bottom: 2px; }
-    .pie-center-value { font-size: 24px; font-weight: 700; color: #ffffff; }
+    .pie-center-label { font-size: 10px; color: #8b8b8b; margin-bottom: 2px; }
+    .pie-center-value { font-size: 20px; font-weight: 700; color: #ffffff; }
     
     #pieChart { width: 100%; height: 100%; }
     
@@ -300,31 +300,31 @@
     .ratio-list {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
     
     .ratio-item {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
     
     .ratio-color {
-      width: 12px;
-      height: 12px;
-      border-radius: 3px;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
       flex-shrink: 0;
     }
     
     .ratio-label {
-      font-size: 12px;
+      font-size: 11px;
       color: #ffffff;
       font-weight: 600;
       flex: 1;
     }
     
     .ratio-value {
-      font-size: 13px;
+      font-size: 11px;
       color: #c9a055;
       font-weight: 700;
     }
@@ -333,17 +333,17 @@
     .accounts-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
+      gap: 8px;
       padding: 0 20px 20px 20px;
     }
     
     .account-card {
       background: #454c56;
-      border-radius: 16px;
-      padding: 18px 16px;
+      border-radius: 12px;
+      padding: 12px 10px;
       cursor: pointer;
       transition: all 0.2s ease;
-      min-height: 90px;
+      min-height: 70px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -357,14 +357,14 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 8px;
     }
     
     .account-icon {
-      width: 40px;
-      height: 40px;
+      width: 32px;
+      height: 32px;
       background: rgba(201, 160, 85, 0.15);
-      border-radius: 10px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -372,8 +372,8 @@
     }
     
     .account-icon svg {
-      width: 22px;
-      height: 22px;
+      width: 18px;
+      height: 18px;
       stroke: #c9a055;
     }
     
@@ -385,13 +385,13 @@
     }
     
     .account-label {
-      font-size: 13px;
+      font-size: 11px;
       color: #b8bec7;
       font-weight: 700;
     }
     
     .account-value {
-      font-size: 18px;
+      font-size: 15px;
       font-weight: 800;
       letter-spacing: -0.5px;
       white-space: nowrap;
@@ -427,10 +427,10 @@
     .detail-item {
       display: flex;
       justify-content: space-between;
-      padding: 8px 12px;
+      padding: 6px 10px;
       background: rgba(0, 0, 0, 0.2);
-      border-radius: 8px;
-      margin-bottom: 6px;
+      border-radius: 6px;
+      margin-bottom: 4px;
     }
     
     .detail-item:last-child {
@@ -438,13 +438,13 @@
     }
     
     .detail-label {
-      font-size: 12px;
+      font-size: 11px;
       color: #b8bec7;
       font-weight: 700;
     }
     
     .detail-value {
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 800;
       white-space: nowrap;
     }
@@ -528,7 +528,7 @@
     <div class="charts-container">
       <div>
         <div class="pie-chart-wrapper">
-          <canvas id="pieChart" width="160" height="160"></canvas>
+          <canvas id="pieChart" width="140" height="140"></canvas>
           <div class="pie-center">
             <div class="pie-center-label">순이익률</div>
             <div class="pie-center-value" id="pieCenterValue">0%</div>
@@ -742,10 +742,10 @@
     function renderPieChart(d) {
       const canvas = document.getElementById('pieChart');
       const ctx = canvas.getContext('2d');
-      const centerX = 80;
-      const centerY = 80;
-      const radius = 70;
-      const innerRadius = 50;
+      const centerX = 70;
+      const centerY = 70;
+      const radius = 60;
+      const innerRadius = 45;
       
       const revenue = d.revenue.total || 1;
       
