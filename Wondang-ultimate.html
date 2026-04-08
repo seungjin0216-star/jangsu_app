@@ -921,246 +921,98 @@
       
       const ratios = [
         { label: '순이익', value: d.netProfit, color: '#00D9FF' },
-        { label: '육류원가', value: d.cogs.육류원가 + d.cogs.고기값, color: '#e85d4f' },
-        { label: '식자재', value: d.cogs.식자재공산품 + d.cogs.미락 + d.cogs.콩나물 + d.cogs.가게카드, color: '#c9a055' },
-        { label: '주류원가', value: d.alcohol, color: '#9b7ebd' },
-        { label: '음료원가', value: d.beverage, color: '#70ad47' },
-        { label: '인건비', value: d.laborCost.total, color: '#f7931e' },
-        { label: '임대료', value: d.rent, color: '#8b8b8b' },
-        { label: '고정비', value: d.fixedCost.total, color: '#6b7280' },
-        { label: '변동비', value: d.variableCost.total, color: '#5a6268' }
-      ].map(r => ({
-        ...r,
-        percent: (r.value / revenue * 100).toFixed(1)
-      })).sort((a, b) => b.percent - a.percent);
+        { label: '육류원가', value: (d.cogs.육류원가 && d.cogs.육류원가.total) || d.cogs.육류원가 || 0, color: '#e85d4f' },
+        { label: '인건비', value: d.laborCost.total, color: '#f7931e' }
+      ];
       
       container.innerHTML = ratios.map(r => `
         <div class="ratio-item">
-          <div class="ratio-color" style="background: ${r.color};"></div>
+          <div class="ratio-color" style="background: ${r.color}"></div>
           <div class="ratio-label">${r.label}</div>
-          <div class="ratio-value">${r.percent}%</div>
+          <div class="ratio-value">${((r.value / revenue) * 100).toFixed(1)}%</div>
         </div>
       `).join('');
     }
 
-    /**
-     * 🆕 새 계정 구조 렌더링 (2단계 아코디언 지원)
-     */
     function renderAccounts(d) {
-      console.log('🔍 renderAccounts 시작', d);
-      const container = document.getElementById('accountsGrid');
-      
+      const grid = document.getElementById('accountsGrid');
       const accounts = [
-        { 
-          icon: ICONS.revenue, label: '매출액', value: d.revenue.total, positive: true, 
-          items: [
-            { label: '현금매출', value: d.revenue.cash },
-            { label: '카드매출', value: d.revenue.card },
-            { label: '배달매출', value: d.revenue.delivery }
-          ]
-        },
-        { 
-          icon: ICONS.cogs, label: '매출원가', value: d.cogs.total, negative: true, 
-          items: [
-            { 
-              label: '육류원가', 
-              value: d.cogs.육류원가, 
-              hasSubItems: true,
-              subItems: [
-                { label: '고기값', value: d.cogs.고기값 }
-              ]
-            },
-            { 
-              label: '식자재&공산품', 
-              value: d.cogs.식자재공산품, 
-              hasSubItems: true,
-              subItems: [
-                { label: '미락', value: d.cogs.미락 },
-                { label: '콩나물', value: d.cogs.콩나물 },
-                { label: '가게카드', value: d.cogs.가게카드 }
-              ]
-            },
-            { label: '주류원가', value: d.alcohol },
-            { label: '음료원가', value: d.beverage }
-          ]
-        },
-        { icon: ICONS.profit, label: '매출이익', value: d.grossProfit, positive: true },
-        { 
-          icon: ICONS.labor, label: '인건비', value: d.laborCost.total, negative: true, 
-          items: [
-            { label: '직원 급여', value: d.laborCost.staff },
-            { label: '알바 급여', value: d.laborCost.parttime }
-          ]
-        },
-        { icon: ICONS.rent, label: '임대료', value: d.rent, negative: true },
-        { 
-          icon: ICONS.fixed, label: '고정비', value: d.fixedCost.total, negative: true, 
-          items: [
-            { label: '화재보험', value: d.fixedCost.insurance },
-            { label: '정수기렌탈', value: d.fixedCost.water },
-            { label: 'KT통신요금', value: d.fixedCost.kt },
-            { label: '세무사비용', value: d.fixedCost.tax }
-          ]
-        },
-        { 
-          icon: ICONS.variable, label: '변동비', value: d.variableCost.total, negative: true, 
-          items: [
-            { label: '카드수수료', value: d.variableCost.cardFee },
-            { label: '매장관리비', value: d.variableCost.management },
-            { label: '가스사용료', value: d.variableCost.gas },
-            { label: '네이버광고', value: d.variableCost.naver },
-            { label: '기타잡비용', value: d.variableCost.misc }
-          ]
-        },
-        { icon: ICONS.operating, label: '영업이익', value: d.operatingProfit, positive: true },
-        { 
-          icon: ICONS.tax, label: '세금예수금', value: d.taxReserve.total, negative: true, 
-          items: [
-            { label: '부가세', value: d.taxReserve.vat },
-            { label: '종소세', value: d.taxReserve.income }
-          ]
-        },
-        { icon: ICONS.net, label: '매출 순 이익', value: d.netProfit, positive: true }
+        { label: '매출액', value: d.revenue.total, icon: ICONS.revenue, items: d.revenue.items },
+        { label: '매출원가', value: d.cogs.total, icon: ICONS.cogs, items: d.cogs.items },
+        { label: '인건비', value: d.laborCost.total, icon: ICONS.labor, items: d.laborCost.items },
+        { label: '임대료', value: d.rent, icon: ICONS.rent, items: null },
+        { label: '고정비', value: d.fixedCost.total, icon: ICONS.fixed, items: d.fixedCost.items },
+        { label: '변동비', value: d.variableCost.total, icon: ICONS.variable, items: d.variableCost.items },
+        { label: '세금예수금', value: d.taxReserve.total, icon: ICONS.tax, items: d.taxReserve.items },
+        { label: '매출순이익', value: d.netProfit, icon: ICONS.net, items: null }
       ];
-      
-      console.log('📊 accounts 배열:', accounts.length, '개');
-      console.log('📦 첫 번째 계정:', accounts[0]);
-      
-      container.innerHTML = accounts.map((acc, idx) => {
-        const hasItems = acc.items && acc.items.filter(item => item.value > 0).length > 0;
-        const valueClass = acc.positive ? 'positive' : (acc.negative ? 'negative' : '');
-        const cardId = `account-${idx}`;
-        
+
+      grid.innerHTML = accounts.map((acc, idx) => {
+        const hasItems = acc.items && Object.keys(acc.items).length > 0;
         return `
-          <div class="account-card" id="${cardId}" data-clickable="${hasItems}">
+          <div class="account-card" id="card-${idx}" ${hasItems ? `onclick="toggleAccount('card-${idx}')"` : ''}>
             <div class="account-header">
               <div class="account-icon">${acc.icon}</div>
               <div class="account-main">
-                <div class="account-label">${acc.label}</div>
-                <div class="account-value ${valueClass}">${formatCurrency(acc.value)}</div>
+                <span class="account-label">${acc.label}</span>
+                <span class="account-value">${formatCurrency(acc.value)}</span>
               </div>
               ${hasItems ? `<div class="account-chevron">${ICONS.chevron}</div>` : ''}
             </div>
             ${hasItems ? `
               <div class="account-details">
-                ${acc.items.filter(item => item.value > 0).map((item, itemIdx) => {
-                  const itemId = `${cardId}-item-${itemIdx}`;
-                  
-                  if (item.hasSubItems && item.subItems && item.subItems.filter(sub => sub.value > 0).length > 0) {
-                    // 2단계 아코디언 (육류원가, 식자재&공산품)
-                    return `
-                      <div class="detail-item detail-item-nested" id="${itemId}" data-sub-clickable="true">
-                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                          <div style="display: flex; align-items: center; gap: 6px; flex: 1;">
-                            <div class="account-chevron" style="width: 16px; height: 16px;">${ICONS.chevron}</div>
-                            <div class="detail-label">${item.label}</div>
+                ${Object.entries(acc.items).map(([k, v], sIdx) => {
+                  const isNested = typeof v === 'object' && v !== null;
+                  return isNested ? `
+                    <div class="detail-item detail-item-nested" id="nested-${idx}-${sIdx}" onclick="event.stopPropagation(); toggleSubItem('nested-${idx}-${sIdx}')">
+                      <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+                        <span class="detail-label">${k}</span>
+                        <div style="display:flex; align-items:center; gap:4px;">
+                          <span class="detail-value">${formatCurrency(v.total)}</span>
+                          <div class="account-chevron" style="width:14px; height:14px;">${ICONS.chevron}</div>
+                        </div>
+                      </div>
+                      <div class="sub-details">
+                        ${Object.entries(v.items || {}).map(([sk, sv]) => `
+                          <div class="sub-detail-item">
+                            <span class="detail-label">${sk}</span>
+                            <span class="detail-value">${formatCurrency(sv)}</span>
                           </div>
-                          <div class="detail-value ${valueClass}">${formatCurrency(item.value)}</div>
-                        </div>
-                        <div class="sub-details">
-                          ${item.subItems.filter(sub => sub.value > 0).map(sub => `
-                            <div class="sub-detail-item">
-                              <div class="detail-label" style="padding-left: 16px;">${sub.label}</div>
-                              <div class="detail-value ${valueClass}">${formatCurrency(sub.value)}</div>
-                            </div>
-                          `).join('')}
-                        </div>
+                        `).join('')}
                       </div>
-                    `;
-                  } else {
-                    // 일반 항목
-                    return `
-                      <div class="detail-item">
-                        <div class="detail-label">${item.label}</div>
-                        <div class="detail-value ${valueClass}">${formatCurrency(item.value)}</div>
-                      </div>
-                    `;
-                  }
+                    </div>
+                  ` : `
+                    <div class="detail-item">
+                      <span class="detail-label">${k}</span>
+                      <span class="detail-value">${formatCurrency(v)}</span>
+                    </div>
+                  `;
                 }).join('')}
               </div>
             ` : ''}
           </div>
         `;
       }).join('');
-      
-      console.log('🔧 HTML 설정 완료, 이벤트 리스너 추가 시작');
-      
-      // ✅ 이벤트 리스너 추가 (즉시 실행)
-      // DOM이 업데이트되도록 다음 틱에 실행
-      requestAnimationFrame(() => {
-        const clickableCards = document.querySelectorAll('.account-card[data-clickable="true"]');
-        const nestedItems = document.querySelectorAll('.detail-item-nested[data-sub-clickable="true"]');
-        
-        console.log('🎯 클릭 가능한 카드:', clickableCards.length, '개');
-        console.log('🎯 중첩 아이템:', nestedItems.length, '개');
-        
-        // 대분류 아코디언
-        clickableCards.forEach((card, idx) => {
-          card.addEventListener('click', function(e) {
-            console.log('🖱️ 카드 클릭:', idx);
-            
-            // 하위 아이템 클릭 시 이벤트 버블링 방지
-            if (e.target.closest('.detail-item-nested')) return;
-            
-            const details = this.querySelector('.account-details');
-            if (!details) return;
-            
-            const isExpanded = this.classList.contains('expanded');
-            this.classList.toggle('expanded');
-            details.classList.toggle('expanded');
-            
-            console.log('📂', isExpanded ? '닫힘' : '열림');
-          });
-        });
-        
-        // 중분류 아코디언 (육류원가, 식자재&공산품)
-        nestedItems.forEach((item, idx) => {
-          item.addEventListener('click', function(e) {
-            console.log('🖱️ 중첩 아이템 클릭:', idx);
-            e.stopPropagation();
-            
-            const subDetails = this.querySelector('.sub-details');
-            if (!subDetails) return;
-            
-            const isExpanded = this.classList.contains('expanded');
-            this.classList.toggle('expanded');
-            subDetails.classList.toggle('expanded');
-            
-            console.log('📂 중첩', isExpanded ? '닫힘' : '열림');
-          });
-        });
-        
-        console.log('✅ 이벤트 리스너 추가 완료');
-      });
     }
 
-    function toggleAccount(cardId) {
+    // 아코디언 토글 함수 (전역)
+    window.toggleAccount = function(cardId) {
       const card = document.getElementById(cardId);
-      const isExpanded = card.classList.contains('expanded');
       const details = card.querySelector('.account-details');
+      if (!details) return;
       
-      if (isExpanded) {
-        card.classList.remove('expanded');
-        details.classList.remove('expanded');
-      } else {
-        card.classList.add('expanded');
-        details.classList.add('expanded');
-      }
-    }
+      card.classList.toggle('expanded');
+      details.classList.toggle('expanded');
+    };
 
-    function toggleSubItem(itemId) {
+    window.toggleSubItem = function(itemId) {
       const item = document.getElementById(itemId);
-      const isExpanded = item.classList.contains('expanded');
       const subDetails = item.querySelector('.sub-details');
+      if (!subDetails) return;
       
-      if (isExpanded) {
-        item.classList.remove('expanded');
-        subDetails.classList.remove('expanded');
-      } else {
-        item.classList.add('expanded');
-        subDetails.classList.add('expanded');
-      }
-    }
+      item.classList.toggle('expanded');
+      subDetails.classList.toggle('expanded');
+    };
 
     function formatCurrency(n) { 
       return (n || 0).toLocaleString() + '원'; 
