@@ -342,7 +342,8 @@
     }
     
     /* ✅ 아코디언이 펼쳐지면 2열 전체를 차지 */
-    .account-card.expanded {
+    .account-card.expanded,
+    .account-card.has-nested-expanded {
       grid-column: 1 / -1;
     }
     
@@ -410,11 +411,15 @@
     }
     
     .account-details {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease;
-      margin-top: 0;
-    }
+  display: flex;
+  flex-direction: column; /* 세로 방향 정렬 */
+  gap: 4px; /* 항목 사이 간격 */
+  padding: 8px 12px;
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.3s ease-out;
+  background: rgba(255, 255, 255, 0.03); /* 가독성을 위한 배경색 */
+}
     
     .account-details.expanded {
       max-height: 500px;
@@ -422,13 +427,11 @@
     }
     
     .detail-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 10px;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 6px;
-      margin-bottom: 4px;
-    }
+  width: 100%;              /* 가로 폭을 전체 사용 */
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+}
     
     .detail-item:last-child {
       margin-bottom: 0;
@@ -884,10 +887,10 @@
       // 순이익 + 비용 항목
       const segments = [
         { label: '순이익', value: d.netProfit, color: '#00D9FF' },
-        { label: '육류원가', value: d.cogs.육류원가 + d.cogs.고기값, color: '#e85d4f' },
-        { label: '식자재&공산품', value: d.cogs.식자재공산품 + d.cogs.미락 + d.cogs.콩나물 + d.cogs.가게카드, color: '#c9a055' },
-        { label: '주류원가', value: d.alcohol, color: '#9b7ebd' },
-        { label: '음료원가', value: d.beverage, color: '#70ad47' },
+        { label: '육류원가', value: d.cogs.items['육류원가'].total, color: '#e85d4f' },
+        { label: '식자재&공산품', value: d.cogs.items['식자재&공산품'].total, color: '#c9a055' },
+        { label: '주류원가', value: d.cogs.items['주류원가'], color: '#9b7ebd' },
+        { label: '음료원가', value: d.cogs.items['음료원가'], color: '#70ad47' },
         { label: '인건비', value: d.laborCost.total, color: '#f7931e' },
         { label: '임대료', value: d.rent, color: '#8b8b8b' },
         { label: '고정비', value: d.fixedCost.total, color: '#6b7280' },
@@ -926,10 +929,10 @@
       
       const ratios = [
         { label: '순이익', value: d.netProfit, color: '#00D9FF' },
-        { label: '육류원가', value: d.cogs.육류원가 + d.cogs.고기값, color: '#e85d4f' },
-        { label: '식자재', value: d.cogs.식자재공산품 + d.cogs.미락 + d.cogs.콩나물 + d.cogs.가게카드, color: '#c9a055' },
-        { label: '주류원가', value: d.alcohol, color: '#9b7ebd' },
-        { label: '음료원가', value: d.beverage, color: '#70ad47' },
+        { label: '육류원가', value: d.cogs.items['육류원가'].total, color: '#e85d4f' },
+        { label: '식자재', value: d.cogs.items['식자재&공산품'].total, color: '#c9a055' },
+        { label: '주류원가', value: d.cogs.items['주류원가'], color: '#9b7ebd' },
+        { label: '음료원가', value: d.cogs.items['음료원가'], color: '#70ad47' },
         { label: '인건비', value: d.laborCost.total, color: '#f7931e' },
         { label: '임대료', value: d.rent, color: '#8b8b8b' },
         { label: '고정비', value: d.fixedCost.total, color: '#6b7280' },
@@ -969,24 +972,24 @@
           items: [
             { 
               label: '육류원가', 
-              value: d.cogs.육류원가, 
+              value: d.cogs.items['육류원가'].total, 
               hasSubItems: true,
               subItems: [
-                { label: '고기값', value: d.cogs.고기값 }
+                { label: '고기값', value: d.cogs.items['육류원가'].items['고기값'] }
               ]
             },
             { 
               label: '식자재&공산품', 
-              value: d.cogs.식자재공산품, 
+              value: d.cogs.items['식자재&공산품'].total, 
               hasSubItems: true,
               subItems: [
-                { label: '미락', value: d.cogs.미락 },
-                { label: '콩나물', value: d.cogs.콩나물 },
-                { label: '가게카드', value: d.cogs.가게카드 }
+                { label: '미락', value: d.cogs.items['식자재&공산품'].items['미락'] },
+                { label: '콩나물', value: d.cogs.items['식자재&공산품'].items['콩나물'] },
+                { label: '가게카드', value: d.cogs.items['식자재&공산품'].items['가게카드'] }
               ]
             },
-            { label: '주류원가', value: d.alcohol },
-            { label: '음료원가', value: d.beverage }
+            { label: '주류원가', value: d.cogs.items['주류원가'] },
+            { label: '음료원가', value: d.cogs.items['음료원가'] }
           ]
         },
         { icon: ICONS.profit, label: '매출이익', value: d.grossProfit, positive: true },
@@ -1032,7 +1035,7 @@
       console.log('📦 첫 번째 계정:', accounts[0]);
       
       container.innerHTML = accounts.map((acc, idx) => {
-        const hasItems = acc.items && acc.items.filter(item => item.value > 0).length > 0;
+        const hasItems = acc.items && acc.items.length > 0;
         const valueClass = acc.positive ? 'positive' : (acc.negative ? 'negative' : '');
         const cardId = `account-${idx}`;
         
@@ -1048,10 +1051,10 @@
             </div>
             ${hasItems ? `
               <div class="account-details">
-                ${acc.items.filter(item => item.value > 0).map((item, itemIdx) => {
+                ${acc.items.map((item, itemIdx) => {
                   const itemId = `${cardId}-item-${itemIdx}`;
                   
-                  if (item.hasSubItems && item.subItems && item.subItems.filter(sub => sub.value > 0).length > 0) {
+                  if (item.hasSubItems && item.subItems && item.subItems.length > 0) {
                     // 2단계 아코디언 (육류원가, 식자재&공산품)
                     return `
                       <div class="detail-item detail-item-nested" id="${itemId}" data-sub-clickable="true">
@@ -1063,7 +1066,7 @@
                           <div class="detail-value ${valueClass}">${formatCurrency(item.value)}</div>
                         </div>
                         <div class="sub-details">
-                          ${item.subItems.filter(sub => sub.value > 0).map(sub => `
+                          ${item.subItems.map(sub => `
                             <div class="sub-detail-item">
                               <div class="detail-label" style="padding-left: 16px;">${sub.label}</div>
                               <div class="detail-value ${valueClass}">${formatCurrency(sub.value)}</div>
@@ -1090,74 +1093,88 @@
       
       console.log('🔧 HTML 설정 완료, 이벤트 리스너 추가 시작');
       
-      // ✅ 이벤트 리스너 추가 - 확실하게 DOM이 준비된 후 실행
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const clickableCards = document.querySelectorAll('.account-card[data-clickable="true"]');
-          const nestedItems = document.querySelectorAll('.detail-item-nested[data-sub-clickable="true"]');
+      // ✅ 이벤트 리스너 추가 - 즉시 실행 (비동기 없음!)
+      const clickableCards = container.querySelectorAll('.account-card[data-clickable="true"]');
+      const nestedItems = container.querySelectorAll('.detail-item-nested[data-sub-clickable="true"]');
+      
+      console.log('🎯 클릭 가능한 카드:', clickableCards.length, '개');
+      console.log('🎯 중첩 아이템:', nestedItems.length, '개');
+      
+      if (clickableCards.length === 0) {
+        console.error('❌ 카드를 찾을 수 없습니다! container:', container);
+        console.error('❌ container HTML:', container.innerHTML.substring(0, 200));
+        return;
+      }
+      
+      // 대분류 아코디언
+      clickableCards.forEach((card, idx) => {
+        card.addEventListener('click', function(e) {
+          console.log('🖱️ 카드 클릭:', idx);
           
-          console.log('🎯 클릭 가능한 카드:', clickableCards.length, '개');
-          console.log('🎯 중첩 아이템:', nestedItems.length, '개');
+          // 하위 아이템 클릭 시 이벤트 버블링 방지
+          if (e.target.closest('.detail-item-nested')) return;
           
-          if (clickableCards.length === 0) {
-            console.error('❌ 카드를 찾을 수 없습니다!');
-            return;
-          }
+          const details = this.querySelector('.account-details');
+          if (!details) return;
           
-          // 대분류 아코디언
-          clickableCards.forEach((card, idx) => {
-            card.addEventListener('click', function(e) {
-              console.log('🖱️ 카드 클릭:', idx);
-              
-              // 하위 아이템 클릭 시 이벤트 버블링 방지
-              if (e.target.closest('.detail-item-nested')) return;
-              
-              const details = this.querySelector('.account-details');
-              if (!details) return;
-              
-              const isExpanded = this.classList.contains('expanded');
-              this.classList.toggle('expanded');
-              details.classList.toggle('expanded');
-              
-              console.log('📂', isExpanded ? '닫힘' : '열림');
-            });
-          });
+          const isExpanded = this.classList.contains('expanded');
+          this.classList.toggle('expanded');
+          details.classList.toggle('expanded');
           
-          // 중분류 아코디언 (육류원가, 식자재&공산품)
-          nestedItems.forEach((item, idx) => {
-            item.addEventListener('click', function(e) {
-              console.log('🖱️ 중첩 아이템 클릭:', idx);
-              e.stopPropagation();
-              
-              const subDetails = this.querySelector('.sub-details');
-              if (!subDetails) return;
-              
-              const isExpanded = this.classList.contains('expanded');
-              this.classList.toggle('expanded');
-              subDetails.classList.toggle('expanded');
-              
-              console.log('📂 중첩', isExpanded ? '닫힘' : '열림');
-            });
-          });
-          
-          console.log('✅ 이벤트 리스너 추가 완료');
+          console.log('📂', isExpanded ? '닫힘' : '열림');
         });
       });
+      
+      // 중분류 아코디언 (육류원가, 식자재&공산품)
+      nestedItems.forEach((item, idx) => {
+        item.addEventListener('click', function(e) {
+          console.log('🖱️ 중첩 아이템 클릭:', idx);
+          e.stopPropagation();
+          
+          const subDetails = this.querySelector('.sub-details');
+          if (!subDetails) return;
+          
+          const isExpanded = this.classList.contains('expanded');
+          this.classList.toggle('expanded');
+          subDetails.classList.toggle('expanded');
+          
+          // ✅ 부모 카드에도 클래스 추가
+          const parentCard = this.closest('.account-card');
+          if (parentCard) {
+            if (!isExpanded) {
+              parentCard.classList.add('has-nested-expanded');
+            } else {
+              // 다른 중첩 아이템이 열려있는지 확인
+              const hasOtherExpanded = parentCard.querySelector('.detail-item-nested.expanded:not(#' + this.id + ')');
+              if (!hasOtherExpanded) {
+                parentCard.classList.remove('has-nested-expanded');
+              }
+            }
+          }
+          
+          console.log('📂 중첩', isExpanded ? '닫힘' : '열림');
+        });
+      });
+      
+      console.log('✅ 이벤트 리스너 추가 완료');
     }
 
     function toggleAccount(cardId) {
-      const card = document.getElementById(cardId);
-      const isExpanded = card.classList.contains('expanded');
-      const details = card.querySelector('.account-details');
-      
-      if (isExpanded) {
-        card.classList.remove('expanded');
-        details.classList.remove('expanded');
-      } else {
-        card.classList.add('expanded');
-        details.classList.add('expanded');
-      }
-    }
+  const card = document.getElementById(cardId);
+  const details = card.querySelector('.account-details');
+  const isExpanded = card.classList.contains('expanded');
+
+  if (!isExpanded) {
+    card.classList.add('expanded');
+    details.classList.add('expanded');
+    // ✅ 포인트: 내용물의 실제 높이만큼 자동으로 늘어남
+    details.style.maxHeight = details.scrollHeight + "px";
+  } else {
+    card.classList.remove('expanded');
+    details.classList.remove('expanded');
+    details.style.maxHeight = "0px";
+  }
+}
 
     function toggleSubItem(itemId) {
       const item = document.getElementById(itemId);
