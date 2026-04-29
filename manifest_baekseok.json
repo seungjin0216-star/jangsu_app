@@ -1,0 +1,20 @@
+{
+  "name": "장수한우곱창 백석점",
+  "short_name": "백석점",
+  "background_color": "#34A853",
+  "theme_color": "#34A853",
+  "display": "standalone",
+  "start_url": "./baekseok.html",
+  "icons": [
+    {
+      "src": "./icons/icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icons/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
