@@ -46,6 +46,7 @@ body{font-family:-apple-system,"Helvetica Neue",sans-serif;background:var(--bg);
 .qi-type{font-size:15px;font-weight:700;color:var(--tx)}
 .qi-file{font-size:12px;color:var(--tx2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
 .qi-status{font-size:20px;min-width:28px;text-align:right}
+.qi-err{font-size:11px;color:#ff6b6b;margin-top:4px;word-break:break-all;line-height:1.4}
 .submit-btn{display:block;width:100%;padding:20px;margin:20px 0 10px;font-size:19px;font-weight:800;background:var(--acc);color:#fff;border:none;border-radius:var(--r2);cursor:pointer;transition:transform .1s,opacity .15s;box-shadow:0 4px 24px rgba(52,168,83,.4)}
 .submit-btn:not(:disabled):active{transform:scale(.97)}
 .submit-btn:disabled{opacity:.3;cursor:not-allowed;box-shadow:none}
@@ -150,7 +151,8 @@ function renderQueue(){
   wrap.style.display=_queue.length?"block":"none";
   document.getElementById("queueList").innerHTML=_queue.map(function(item,i){
     var icon=item.status==="대기"?"🕐":item.status==="업로드중"?"⏳":item.status==="완료"?"✅":"❌";
-    return "<div class='queue-item'><span class='qi-num'>"+(i+1)+"</span><div class='qi-info'><div class='qi-type'>"+item.docType+"</div><div class='qi-file'>"+(item.fname||"파일")+"</div></div><span class='qi-status'>"+icon+"</span></div>";
+    var errLine=item.errMsg?"<div class='qi-err'>"+item.errMsg+"</div>":"";
+    return "<div class='queue-item'><span class='qi-num'>"+(i+1)+"</span><div class='qi-info'><div class='qi-type'>"+item.docType+"</div><div class='qi-file'>"+(item.fname||"파일")+"</div>"+errLine+"</div><span class='qi-status'>"+icon+"</span></div>";
   }).join("");
 }
 function submitAll(){
@@ -179,9 +181,17 @@ function processNext(idx){
     method:"POST",
     body:JSON.stringify({base64:item.b64,mime:item.mime,docType:item.docType,store:STORE,fname:item.fname})
   })
-  .then(function(r){return r.json();})
-  .then(function(r){item.status=r.success?"완료":"오류";renderQueue();processNext(idx+1);})
-  .catch(function(){item.status="오류";renderQueue();processNext(idx+1);});
+  .then(function(r){
+    var ct=r.headers.get("content-type")||"";
+    if(ct.indexOf("json")>-1){return r.json();}
+    return r.text().then(function(t){throw new Error("non-JSON: "+t.substring(0,120));});
+  })
+  .then(function(r){
+    if(r.success){item.status="완료";}
+    else{item.status="오류";item.errMsg=r.error||r.message||JSON.stringify(r);}
+    renderQueue();processNext(idx+1);
+  })
+  .catch(function(e){item.status="오류";item.errMsg=e.message||String(e);renderQueue();showStatus("❌","오류 발생",item.docType+"\n"+item.errMsg);processNext(idx+1);});
 }
 function showStatus(icon,txt,detail){
   var s=document.getElementById("status");s.classList.add("show");
